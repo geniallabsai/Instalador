@@ -2,6 +2,7 @@
 
 Seis agentes. Cinco trabalham sobre o material; o sexto trabalha sobre você.
 Cada um mora em um arquivo próprio na pasta `agentes/` — um por agente, leia o código.
+Cada um mora em um arquivo próprio na pasta `agentes/` — um por agente, leia o código.
 As duas regras da casa:
 
 1. **Material nenhum vira ensino antes de passar pelo tribunal.**
@@ -30,6 +31,9 @@ sequenceDiagram
 
 ## Roster
 
+Cada agente mora em um arquivo próprio na pasta [`agentes/`](agentes/) —
+um por agente, leia o código.
+
 | Agente | Módulo | Papel |
 |---|---|---|
 | Destripador | `agentes/destripador.py` | transforma qualquer coisa em mapa estrutural |
@@ -38,6 +42,7 @@ sequenceDiagram
 | Convicto | `agentes/convicto.py` | sustenta a versão mais forte da explicação, com evidência |
 | Juiz | `agentes/juiz.py` | pontua, mede a confiança e redige o veredito |
 | Sócrates | `agentes/socrates.py` | só pergunta; recalibra a cada resposta sua |
+
 
 ## Destripador
 
@@ -125,6 +130,6 @@ reaproveita um scan anterior.
 
 1. Crie o módulo em `agentes/` com atributos `nome` e `papel` e **um**
    método público que receba o mapa (não o disco).
-2. Encaixe-o no ritual em `professor.py` (produção) ou `relatorios.py` (publicação).
+2. Encaixe-o no ritual em `agentes/professor.py` (produção) ou `instalador_core/relatorios.py` (publicação).
 3. Publique a saída dele: uma nota no vault Obsidian e uma seção no `curso.md`.
 4. Escreva o teste primeiro: agente sem teste é opinião, e opinião não entra na casa.
