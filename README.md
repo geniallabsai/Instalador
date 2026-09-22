@@ -191,7 +191,7 @@ Ordem de preferência: Ollama → OpenAI → OpenRouter → silêncio.
 python3 -m unittest discover -s testes -v
 ```
 
-17 testes: arte, mapa, debate, socrático, curso, PDF (validado com pypdf),
+19 testes: arte, mapa, debate, socrático, curso, PDF (validado com pypdf),
 DOCX (validado com python-docx), mermaid, vault Obsidian (todo wikilink resolvido),
 CLI por subprocess e a calculadora de exemplo.
 
@@ -200,14 +200,17 @@ CLI por subprocess e a calculadora de exemplo.
 ```
 Instalador/
 ├── instalador               # o executável (CLI)
-├── instalador_core/         # um módulo por agente + motores
+├── agentes/                 # OS SEIS AGENTES — um arquivo por agente
+│   ├── destripador.py       # Destripador — lê tudo, vira mapa estrutural
+│   ├── professor.py         # Professor — 6 fases, complexo → simples
+│   ├── cetico.py            # Cético — objeta com evidência
+│   ├── convicto.py          # Convicto — defende com evidência
+│   ├── juiz.py              # Juiz — pontua e decide
+│   └── socrates.py          # Sócrates — pergunta e calibra
+├── instalador_core/         # motores: leitura, análise, saídas (PDF/DOCX/Obsidian)
 │   ├── arte.py              # a fonte de blocos GENIAL LABS
 │   ├── leitura.py           # caminhada de arquivos, linguagens, símbolos
 │   ├── analise.py           # riscos (com evidência) e pontos fortes
-│   ├── destripador.py       # o agente que destrincha
-│   ├── debaters.py          # Cético, Convicto e Juiz
-│   ├── professor.py         # as 6 fases
-│   ├── socrates.py          # nuance semântica + perguntas
 │   ├── llm.py               # Ollama → OpenAI → OpenRouter → offline
 │   ├── pdf.py               # PDF feito à mão (só stdlib)
 │   ├── docx.py              # DOCX/OOXML feito à mão (só stdlib)
@@ -220,6 +223,7 @@ Instalador/
 ├── LICENSE (MIT) · VERSION · .gitattributes · .gitignore
 └── README.md · AGENTES.md
 ```
+
 
 ## Licença
 
