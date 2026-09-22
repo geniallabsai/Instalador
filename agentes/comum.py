@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""comum — material compartilhado dos debatedores.
+"""
+comum — material compartilhado dos debatedores.
 
 O retrato `_fatos` é o único pedaço do mapa que Cético, Convicto e Juiz
-enxergam em prosa ao pedir ajuda ao modelo de IA: resumo, linguagens, top
-de arquivos, riscos e pontos fortes, cortado para caber num prompt. Os
-debatedores não leem disco; leem esse retrato.
+enxergam em prosa ao pedir ajuda ao modelo de IA: resumo, linguagens,
+top de arquivos, riscos e pontos fortes, cortado para caber num prompt.
+Os debatedores não leem disco; leem esse retrato.
 """
 
 import json
