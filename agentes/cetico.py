@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Cético — agente 3 de 6.
+"""
+Cético — agente 3 de 6.
 
-Ataca a explicação mais forte com evidência de arquivo:linha. Cada objeção
-nasce com endereço; sem endereço, não entra no veredito. Três fontes, nessa
-ordem: riscos detectados, riscos estruturais e perguntas universais. Se o
-mapa ficar pobre em objeções factuais, pede ao modelo de IA (se houver)
-até cinco novas, marcadas `modelo`. Máximo de dez no veredito.
+Ataca a explicação mais forte com evidência de arquivo:linha. Cada
+objeção nasce com endereço; sem endereço, não entra no veredito.
+Três fontes, nessa ordem: riscos detectados, riscos estruturais e
+perguntas universais. Se o mapa ficar pobre em objeções factuais,
+pede ao modelo de IA (se houver) até cinco novas, marcadas `modelo`.
+Máximo de dez no veredito.
 """
 
 import json
