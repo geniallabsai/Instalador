@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+saida/
+.instalador/
+.DS_Store
