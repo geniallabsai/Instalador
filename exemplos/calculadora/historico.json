@@ -1,0 +1,9 @@
+{
+  "usuario": "exemplo",
+  "operacoes": [
+    {"a": 2, "b": 3, "op": "+", "resultado": 5},
+    {"a": 10, "b": 4, "op": "/", "resultado": 2.5}
+  ],
+  "teto": 100,
+  "versao": "1.0.0"
+}
