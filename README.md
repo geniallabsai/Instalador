@@ -207,7 +207,7 @@ Instalador/
 │   ├── convicto.py          # Convicto — defende com evidência
 │   ├── juiz.py              # Juiz — pontua e decide
 │   └── socrates.py          # Sócrates — pergunta e calibra
-├── instalador_core/         # motores: leitura, análise, saídas (PDF/DOCX/Obsidian)
+├── instalador_core/         # motores: leitura, análise e saídas (PDF/DOCX/Obsidian)
 │   ├── arte.py              # a fonte de blocos GENIAL LABS
 │   ├── leitura.py           # caminhada de arquivos, linguagens, símbolos
 │   ├── analise.py           # riscos (com evidência) e pontos fortes
