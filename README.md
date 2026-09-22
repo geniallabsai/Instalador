@@ -36,13 +36,13 @@ instalador
 ```bash
 git clone https://github.com/geniallabsai/Instalador.git
 cd Instalador
-./install.sh                      # Linux/macOS
+bash install.sh                      # Linux/macOS
 powershell -ExecutionPolicy Bypass -File install.ps1   # Windows
 ```
 
 O instalador copia o pacote para `~/.genial-labs/instalador` e cria o wrapper
 `instalador` em `~/.local/bin`, chamando `python3` explicitamente — sem mágica de
-PATH, funciona inclusive no Git Bash. Desinstala com `./uninstall.sh` (ou
+PATH, funciona inclusive no Git Bash. Desinstala com `bash uninstall.sh` (ou
 `uninstall.ps1` no Windows).
 
 **Requisito único:** Python 3.7+. Zero pacote de pip.
