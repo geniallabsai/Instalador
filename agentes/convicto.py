@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Convicto — agente 4 de 6.
+"""
+Convicto — agente 4 de 6.
 
-Defende o material com a versão mais forte da explicação, sempre apontando
-evidência (arquivo:linha ou artefato — teste, CI, Dockerfile, LICENSE,
-README, docstrings, type hints, superfície pequena). Sem defesa nenhuma, a
-última âncora é o próprio mapa.
+Defende o material com a versão mais forte da explicação, sempre
+apontando evidência (arquivo:linha ou artefato — teste, CI,
+Dockerfile, LICENSE, README, docstrings, type hints, superfície
+pequena). Sem defesa nenhuma, a última âncora é o próprio mapa.
 """
 
 import json
