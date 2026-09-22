@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Juiz — agente 5 de 6.
+"""
+Juiz — agente 5 de 6.
 
-Arbitra Cético × Convicto com aritmética aberta: pena = soma dos pesos das
-objeções (crítico 8, alto 5, médio 2, baixo 1), ganho = min(10, 2×defesas),
-confiança = clamp(90 − pena + ganho, 5, 99). ≥80 sólido, ≥55 com ressalvas,
-abaixo disso questionado. O veredito volta com a pontuação completa.
+Arbitra Cético × Convicto com aritmética aberta: pena = soma dos pesos
+das objeções (crítico 8, alto 5, médio 2, baixo 1), ganho = min(10,
+2×defesas), confiança = clamp(90 − pena + ganho, 5, 99). ≥80 sólido,
+≥55 com ressalvas, abaixo disso questionado. O veredito volta com a
+pontuação completa.
 """
 
 import json
