@@ -313,3 +313,26 @@ class TestCli(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAgentesPacote(unittest.TestCase):
+    def test_pacote_visivel(self):
+        import agentes
+        base = os.path.dirname(os.path.abspath(agentes.__file__))
+        for m in ("__init__", "comum", "destripador", "professor",
+                  "cetico", "convicto", "juiz", "socrates"):
+            self.assertTrue(os.path.exists(os.path.join(base, m + ".py")), m)
+        for nome in agentes.__all__:
+            self.assertTrue(hasattr(agentes, nome), nome)
+
+    def test_shims_mantem_compatibilidade(self):
+        import agentes
+        from instalador_core import debaters, destripador, professor, socrates
+        self.assertIs(debaters.Cetico, agentes.Cetico)
+        self.assertIs(debaters.Convicto, agentes.Convicto)
+        self.assertIs(debaters.Juiz, agentes.Juiz)
+        self.assertIs(debaters.NIVEL_PENTO, agentes.juiz.NIVEL_PENTO)
+        self.assertIs(destripador.Destripador, agentes.Destripador)
+        self.assertIs(professor.Professor, agentes.Professor)
+        self.assertIs(socrates.Socrates, agentes.Socrates)
+        self.assertIs(socrates.medir_nuance, agentes.medir_nuance)
