@@ -1,0 +1,474 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""instalador — Genial Labs.
+
+Destrincha qualquer código, programa ou pasta e ensina em 6 fases com uma
+esquadra de agentes socráticos. Saída do `curso`: PDF + DOCX + Markdown para
+agentes + vault Obsidian + mermaid + JSON. Sempre.
+
+Comandos:
+  instalador                  banner + menu
+  instalador destri ALVO      destrincha e para no mapa (mapa.json + mapa.mmd)
+  instalador curso ALVO       o ritual completo (PDF + DOCX + MD + Obsidian + MMD + JSON)
+  instalador chat [ALVO]      conversa socrática calibrada pela nuance de quem responde
+  instalador debate TEMA      Cético × Convicto × Juiz ao vivo (tema livre ou --alvo)
+  instalador status           agentes + motor de IA detectado
+  instalador instale          instala o comando global
+  instalador desinstale       remove o comando global
+  instalador arte             só a arte de blocos
+"""
+import argparse
+import datetime
+import json
+import os
+import shutil
+import sys
+
+if os.name == "nt":
+    os.environ.setdefault("PYTHONUTF8", "1")
+    for _st in (sys.stdout, sys.stderr):
+        try:
+            _st.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+RAIZ = os.path.dirname(os.path.abspath(__file__))
+if RAIZ not in sys.path:
+    sys.path.insert(0, RAIZ)
+
+from instalador_core import __version__, REPO          # noqa: E402
+from instalador_core import llm                         # noqa: E402
+from instalador_core.arte import bloco                   # noqa: E402
+from instalador_core.debaters import Cetico, Convicto, Juiz   # noqa: E402
+from instalador_core.destripador import Destripador     # noqa: E402
+from instalador_core.professor import Professor         # noqa: E402
+from instalador_core.socrates import Socrates           # noqa: E402
+from instalador_core import relatorios                  # noqa: E402
+
+
+# ---------------------------------------------------------------------- #
+# cores                                                                   #
+# ---------------------------------------------------------------------- #
+
+def _cor(num):
+    if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
+        return lambda s: s
+    return lambda s: "\033[%sm%s\033[0m" % (num, s)
+
+
+BOLDO = _cor("1")
+AZUL = _cor("1;34")
+CIANO = _cor("1;36")
+VERDE = _cor("1;32")
+VERMELHO = _cor("1;31")
+AMARELO = _cor("1;33")
+MAGENTA = _cor("1;35")
+CINZA = _cor("2")
+
+COR_AGENTE = {
+    "Destripador": CIANO,
+    "Professor": AZUL,
+    "Cético": VERMELHO,
+    "Convicto": VERDE,
+    "Juiz": MAGENTA,
+    "Sócrates": AMARELO,
+}
+
+
+def ag(cor_nome, texto):
+    return "%s %s" % (BOLDO(COR_AGENTE.get(cor_nome, AZUL)(cor_nome + " ›")), CINZA(texto))
+
+
+def banner():
+    for linha in bloco():
+        print(AZUL(linha))
+    print(AZUL("    Genial Labs · INSTALADOR"))
+    print(CINZA("    v%s · destrincha qualquer coisa · ensina em 6 fases · saída sempre PDF + DOCX + Obsidian + mermaid" % __version__))
+
+
+class Progresso:
+    def __init__(self, agente):
+        self.agente = agente
+
+    def __call__(self, msg, i=0, n=0):
+        if n:
+            passo = max(1, n // 15)
+            if i != n and i % passo != 0:
+                return
+            print(ag(self.agente, "%s %d/%d" % (msg, i, n)))
+        else:
+            print(ag(self.agente, msg))
+
+
+def slug_de(texto):
+    import re
+    t = "".join(c if c.isalnum() else "-" for c in texto.lower())
+    return re.sub(r"-+", "-", t).strip("-")[:32] or "alvo"
+
+
+def dir_saida_padrao(alvo):
+    ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    return os.path.join(os.getcwd(), "saida", slug_de(os.path.basename(os.path.abspath(alvo))) + "-" + ts)
+
+
+# ---------------------------------------------------------------------- #
+# comandos                                                                #
+# ---------------------------------------------------------------------- #
+
+def cmd_destri(args):
+    alvo = args.alvo
+    mapa = Destripador().destruir(alvo, ao_avisar=Progresso("Destripador"))
+    base = args.o or dir_saida_padrao(alvo)
+    os.makedirs(base, exist_ok=True)
+    with open(os.path.join(base, "mapa.json"), "w", encoding="utf-8") as f:
+        json.dump(mapa, f, ensure_ascii=False, indent=1)
+    from instalador_core import mermaid
+    with open(os.path.join(base, "mapa.mmd"), "w", encoding="utf-8") as f:
+        f.write(mermaid.mapa_mermaid(mapa) + "\n")
+    if args.json:
+        print(json.dumps(mapa, ensure_ascii=False, indent=1))
+        return 0
+    print()
+    print(BOLDO("── DESTRINCHADO ─────────────────────────────────────────────"))
+    print("nome: %s" % mapa["nome"])
+    print("resumo: %s" % mapa.get("resumo", ""))
+    print("escala: %d arquivos · %d linhas · dominante: %s" % (
+        mapa["arquivos_total"], mapa["linhas_total"], mapa.get("dominante") or "?"))
+    print("linguagens: %s" % ", ".join("%s (%d)" % kv for kv in mapa["linguagens"].items()))
+    print(BOLDO("\n── RISCOS COM EVIDÊNCIA (%d) ──" % (len(mapa.get("riscos", [])) + len(mapa.get("estruturais", [])))))
+    for r in mapa.get("riscos", [])[:12]:
+        cor = VERMELHO if r["nivel"] == "critico" else (AMARELO if r["nivel"] == "alto" else CINZA)
+        print("  %s [%-7s] %s:%s" % (cor("●"), r["nivel"], r["arquivo"], r["linha"]))
+    for e in mapa.get("estruturais", [])[:6]:
+        print("  %s [%-7s] %s — %s" % (AMARELO("○"), e.get("nivel", "?"), e.get("arquivo", ""), e.get("texto", "")))
+    print(BOLDO("\n── LEITURA SUGERIDA ──"))
+    for i, cam in enumerate(mapa.get("leitura_sugerida", [])[:8], 1):
+        print("  %2d. %s" % (i, cam))
+    print("\n  escrito: %s" % VERDE(os.path.join(base, "mapa.json")))
+    print("  escrito: %s" % VERDE(os.path.join(base, "mapa.mmd")))
+    print(CINZA("\n  próximo passo: instalador curso %s" % alvo))
+    return 0
+
+
+def cmd_curso(args):
+    banner()
+    print()
+    alvo = args.alvo
+    if args.sem_ia:
+        os.environ["INSTALADOR_SEM_IA"] = "1"
+        llm._CACHE.clear()
+
+    mapa = Destripador().destruir(alvo, ao_avisar=Progresso("Destripador"))
+    print(ag("Cético", "caçando objeções com evidência…"))
+    objecoes = Cetico().objetar(mapa)
+    print(ag("Convicto", "reunindo defesas…"))
+    defesas = Convicto().defender(mapa)
+    print(ag("Juiz", "ponderando…"))
+    juizo = Juiz().decidir(mapa, objecoes, defesas)
+    print(ag("Juiz", "confiança %d/100 · %s" % (juizo["confianca"], CINZA(juizo["barra"]))))
+
+    curso = Professor().ensinar(mapa, juizo, sem_ia=args.sem_ia, ao_avisar=Progresso("Professor"))
+
+    base = args.o or dir_saida_padrao(alvo)
+    caminhos = relatorios.escrever_tudo(base, curso, mapa)
+
+    print()
+    print(BOLDO("── CURSO GERADO ─────────────────────────────────────────────"))
+    print("  pasta: %s" % VERDE(base))
+    nomes = [
+        ("pdf", "curso.pdf — para humanos abrirem e imprimir"),
+        ("docx", "curso.docx — para editar no Word/LibreOffice"),
+        ("md", "curso.md — para Codex, Claude Code e Cursor"),
+        ("mapa_json", "mapa.json — grafo completo de máquinas"),
+        ("obsidian", "obsidian/ — vault pronto (MOC + nota por fase)"),
+        ("mmd_mapa", "mapa.mmd — diagrama mermaid do material"),
+        ("mmd_curso", "curso.mmd — diagrama mermaid do fluxo do curso"),
+    ]
+    for chave, desc in nomes:
+        caminho = caminhos[chave]
+        print("  %s %s" % (VERDE("✓"), desc))
+    print()
+    print(CINZA("Prompt para outro agente (copie e cole):"))
+    print(CINZA('  "Leia curso.md e mapa.json em %s. Explique a fase 3 para um iniciante e me faça 5 perguntas antes de eu avançar."' % base))
+    print(CINZA('Vault Obsidian: arraste a pasta "obsidian" para a aplicação e abra 00-moc.'))
+    return 0
+
+
+def cmd_chat(args):
+    banner()
+    print()
+    if args.mapa and os.path.exists(args.mapa):
+        with open(args.mapa, encoding="utf-8") as f:
+            mapa = json.load(f)
+        print(ag("Sócrates", "mapa carregado: %s" % args.mapa))
+    else:
+        alvo = args.alvo
+        mapa = Destripador().destruir(alvo, ao_avisar=Progresso("Destripador"))
+    soc = Socrates()
+    estado = {"fase": max(1, min(6, args.fase)), "nivel": 3, "seq": 0, "rodada": 0}
+    print(ag("Sócrates", "assumo a cadeira. alvo: %s" % mapa.get("nome", "?")))
+    print(CINZA("  comandos: /fase N · /nivel N · sair"))
+    pergunta = soc.pergunta(mapa, estado)
+    print()
+    print(AMARELO("Sócrates › ") + pergunta)
+    rodadas_limite = args.rodadas if args.rodadas > 0 else 10 ** 9
+    while estado["rodada"] < rodadas_limite:
+        try:
+            linha = input(CINZA("você › "))
+        except EOFError:
+            print()
+            break
+        linha = linha.strip()
+        if not linha:
+            continue
+        baixa = linha.lower()
+        if baixa in ("sair", "exit", "quit", "tchau"):
+            break
+        if baixa.startswith("/fase"):
+            try:
+                estado["fase"] = max(1, min(6, int(baixa.replace("/fase", "").strip())))
+                estado["seq"] = 0
+                print(CINZA("fase %d." % estado["fase"]))
+            except ValueError:
+                print(CINZA("uso: /fase N (1–6)"))
+            continue
+        if baixa.startswith("/nivel"):
+            try:
+                estado["nivel"] = max(1, min(5, int(baixa.replace("/nivel", "").strip())))
+                print(CINZA("nível %d." % estado["nivel"]))
+            except ValueError:
+                print(CINZA("uso: /nivel N (1–5)"))
+            continue
+        resposta = soc.responder(mapa, estado, linha)
+        print()
+        print(AMARELO("Sócrates › ") + resposta.replace("\n", "\n" + AMARELO("           ")))
+    print(CINZA("\nfim da conversa. o curso completo espera em: instalador curso %s" % (args.alvo or "ALVO")))
+    return 0
+
+
+def _debate_livre(tema):
+    cetico = [
+        "'%s' — mas 'sempre' e 'nunca' morrem no primeiro contraexemplo. Qual é o seu?" % tema,
+        "e quando a entrada vem vazia, gigante ou em outro idioma?",
+        "qual premissa desta afirmação ninguém verificou ainda?",
+    ]
+    convicto = [
+        "o que é observado pode ser verificado de novo — e o que se repete, deixa de ser opinião.",
+        "onde há exceção, ela está nomeada: exceção nomeada deixa de ser risco invisível.",
+        "o argumento vale no exemplo mínimo; se quebrar na escala, diga onde.",
+    ]
+    objecoes = [{"nivel": "medio", "evidencia": "tema livre", "texto": c} for c in cetico]
+    defesas = [{"texto": c, "evidencia": "tema livre"} for c in convicto]
+    return objecoes, defesas
+
+
+def cmd_debate(args):
+    banner()
+    print()
+    tema = " ".join(args.tema)
+    objecoes = defesas = None
+    mapa = None
+    if args.alvo:
+        mapa = Destripador().destruir(args.alvo, ao_avisar=Progresso("Destripador"))
+        objecoes, defesas = Cetico().objetar(mapa), Convicto().defender(mapa)
+        exibido = "%s (alvo: %s)" % (tema, args.alvo)
+    elif os.path.exists(tema):
+        mapa = Destripador().destruir(tema, ao_avisar=Progresso("Destripador"))
+        objecoes, defesas = Cetico().objetar(mapa), Convicto().defender(mapa)
+        exibido = tema
+    else:
+        obj_llm = llm.chamar(
+            "Você é o Cético do Genial Labs: desconfiado, específico, educado. Responda SOMENTE com até 4 linhas iniciadas por '- '. PT-BR.",
+            "Objete o seguinte tema: %s" % tema, max_caracteres=700)
+        def_llm = llm.chamar(
+            "Você é o Convicto do Genial Labs: defende com a versão mais forte da explicação, sempre com evidência. Responda SOMENTE com até 3 linhas iniciadas por '- '. PT-BR.",
+            "Defenda o seguinte tema: %s" % tema, max_caracteres=600)
+        if obj_llm and def_llm:
+            objecoes = [{"nivel": "medio", "evidencia": "modelo", "texto": l.strip().lstrip("-").strip()}
+                        for l in obj_llm.splitlines() if l.strip()][:4]
+            defesas = [{"texto": l.strip().lstrip("-").strip(), "evidencia": "modelo"}
+                       for l in def_llm.splitlines() if l.strip()][:3]
+            exibido = tema
+        else:
+            objecoes, defesas = _debate_livre(tema)
+            exibido = tema
+    print(BOLDO("DEBATE — %s" % exibido))
+    print()
+    print(VERMELHO(BOLDO("CÉTICO")))
+    for o in objecoes[:6]:
+        print("  %s %s" % (VERMELHO("• [%s]" % o.get("nivel", "?").upper()), o.get("texto", "")))
+    print()
+    print(VERDE(BOLDO("CONVICTO")))
+    for d in defesas[:6]:
+        print("  %s %s" % (VERDE("•"), d.get("texto", "")))
+    print()
+    juizo = Juiz().decidir({"riscos": []}, objecoes, defesas)
+    print(MAGENTA(BOLDO("JUÍZ")))
+    print("  %s %s" % (CINZA(juizo["barra"]), BOLDO("confiança %d/100" % juizo["confianca"])))
+    print("  %s" % juizo["decisao"])
+    print(CINZA("\n  pontuação aberta: pena %d × ganho %d — regras em AGENTES.md" % (
+        juizo["pontuacao"]["pena"], juizo["pontuacao"]["ganho"])))
+    return 0
+
+
+AGENTES_ROSTER = [
+    ("Destripador", "lê qualquer coisa e produz o mapa estrutural com evidências"),
+    ("Professor", "transforma o mapa em 6 fases didáticas, complexo → simples"),
+    ("Cético", "desafia cada explicação: buracos, exceções, premissas ocultas"),
+    ("Convicto", "defende a versão mais forte, com evidência no código"),
+    ("Juiz", "pontua objeções × defesas e decide (confiança 0–100)"),
+    ("Sócrates", "só pergunta; calibra pelo jargão, hesitação e extensão de quem responde"),
+]
+
+
+def cmd_status(_args):
+    banner()
+    print()
+    print(BOLDO("AGENTES"))
+    for nome, papel in AGENTES_ROSTER:
+        print("  %s — %s" % (BOLDO(COR_AGENTE.get(nome, AZUL)(nome)), CINZA(papel)))
+    det = llm.detectar()
+    if det:
+        print("\nMOTOR DE IA: %s (%s)" % (BOLDO(det[0]), det[1]))
+    else:
+        print("\nMOTOR DE IA: %s" % CINZA("offline/determinístico — o curso nasce completo mesmo assim."))
+        print(CINZA("  defina OLLAMA_HOST, OPENAI_API_KEY ou OPENROUTER_API_KEY para prosa de modelo."))
+    print("PYTHON %s · INSTALADOR v%s" % (sys.version.split()[0], __version__))
+    print(REPO)
+    return 0
+
+
+def cmd_arte(_args):
+    banner()
+    return 0
+
+
+def cmd_instale(_args):
+    home = os.path.expanduser("~")
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA", os.path.join(home, "AppData", "Local"))
+        bin_dir = os.path.join(base, "GenialInstalador", "bin")
+        os.makedirs(bin_dir, exist_ok=True)
+        py = shutil.which("python") or shutil.which("python3") or "python"
+        wrapper = os.path.join(bin_dir, "instalador.cmd")
+        with open(wrapper, "w", encoding="ascii", errors="replace") as f:
+            f.write("@echo off\r\nset PYTHONUTF8=1\r\n\"%s\" \"%s\" %%*\r\n" % (py, RAIZ.replace("/", "\\")))
+        print(VERDE("✓ wrapper criado: " + wrapper))
+        print(CINZA("  garanta que %s está no PATH" % bin_dir))
+    else:
+        bin_dir = os.path.join(home, ".local", "bin")
+        os.makedirs(bin_dir, exist_ok=True)
+        wrapper = os.path.join(bin_dir, "instalador")
+        with open(wrapper, "w", encoding="utf-8") as f:
+            f.write("#!/bin/sh\n# Genial Labs · INSTALADOR — wrapper\nexport PYTHONUTF8=1\nexport PYTHONIOENCODING=utf-8\nPY=\"$(command -v python3 || command -v python)\"\n[ -z \"$PY\" ] && { echo 'instalador: python3 nao encontrado' >&2; exit 127; }\nexec \"$PY\" \"%s\" \"$@\"\n" % os.path.abspath(__file__))
+        os.chmod(wrapper, 0o755)
+        print(VERDE("✓ wrapper criado: " + wrapper))
+        if (":" + bin_dir + ":") not in (":" + os.environ.get("PATH", "") + ":"):
+            print(CINZA("  adicione ao PATH: export PATH=\"%s:$PATH\" (ou abra um novo terminal)" % bin_dir))
+    return 0
+
+
+def cmd_desinstale(_args):
+    removidos = []
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA", os.path.join(os.path.expanduser("~"), "AppData", "Local"))
+        wrapper = os.path.join(base, "GenialInstalador", "bin", "instalador.cmd")
+    else:
+        wrapper = os.path.join(os.path.expanduser("~"), ".local", "bin", "instalador")
+    if os.path.exists(wrapper):
+        os.remove(wrapper)
+        removidos.append(wrapper)
+    if removidos:
+        for r in removidos:
+            print("removido: %s" % r)
+        print(VERDE("comando global removido. (os arquivos do repositório ficam onde estão)"))
+    else:
+        print("nada para remover.")
+    return 0
+
+
+# ---------------------------------------------------------------------- #
+# menu                                                                    #
+# ---------------------------------------------------------------------- #
+
+def menu():
+    banner()
+    print()
+    print(BOLDO("Comandos:"))
+    for comando, desc in [
+        ("destri ALVO", "destrincha e para no mapa (mapa.json + mapa.mmd)"),
+        ("curso ALVO", "ritual completo → PDF + DOCX + curso.md + Obsidian + mermaid + JSON"),
+        ("chat [ALVO]", "conversa socrática calibrada pela sua nuance"),
+        ('debate TEMA', "Cético × Convicto × Juiz ao vivo (aceita caminho de código como TEMA)"),
+        ("status", "agentes + motor de IA detectado"),
+        ("instale", "instala o comando global"),
+        ("desinstale", "remove o comando global"),
+        ("arte", "só a arte de blocos"),
+    ]:
+        print("  %s  %s" % (CIANO(comando.ljust(16)), CINZA(desc)))
+    print()
+    print(CINZA("Exemplos:"))
+    print(CINZA("  instalador curso .                ← este repositório inteiro vira curso"))
+    print(CINZA("  instalador destri exemplos/calculadora"))
+    print(CINZA("  instalador chat . --fase 3"))
+    print(CINZA("\n%s" % REPO))
+    return 0
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if not argv or argv[0] in ("-h", "--help", "help", "menu"):
+        return menu()
+    parser = argparse.ArgumentParser(prog="instalador", add_help=False)
+    parser.add_argument("cmd", nargs="?")
+    parser.add_argument("resto", nargs=argparse.REMAINDER)
+    ns = parser.parse_args(argv)
+    cmd = ns.cmd or ""
+    resto = ns.resto
+
+    if cmd == "destri":
+        p = argparse.ArgumentParser(prog="instalador destri")
+        p.add_argument("alvo")
+        p.add_argument("-o", "--o", default=None, help="pasta de saída")
+        p.add_argument("--json", action="store_true", help="imprime o mapa JSON completo")
+        return cmd_destri(p.parse_args(resto))
+    if cmd == "curso":
+        p = argparse.ArgumentParser(prog="instalador curso")
+        p.add_argument("alvo", help="arquivo, pasta ou repositório (use '.')")
+        p.add_argument("-o", "--o", default=None, help="pasta de saída")
+        p.add_argument("--sem-ia", action="store_true", help="força o motor determinístico")
+        return cmd_curso(p.parse_args(resto))
+    if cmd == "chat":
+        p = argparse.ArgumentParser(prog="instalador chat")
+        p.add_argument("alvo", nargs="?", default=".")
+        p.add_argument("--fase", type=int, default=1)
+        p.add_argument("--rodadas", type=int, default=0, help="0 = até você sair")
+        p.add_argument("--mapa", default=None, help="usa um mapa.json existente em vez de destrinchar")
+        return cmd_chat(p.parse_args(resto))
+    if cmd == "debate":
+        p = argparse.ArgumentParser(prog="instalador debate")
+        p.add_argument("tema", nargs="+")
+        p.add_argument("--alvo", default=None, help="caminho de código que alimenta o debate")
+        return cmd_debate(p.parse_args(resto))
+    if cmd == "status":
+        return cmd_status(None)
+    if cmd == "arte":
+        return cmd_arte(None)
+    if cmd == "instale":
+        return cmd_instale(None)
+    if cmd == "desinstale":
+        return cmd_desinstale(None)
+    if cmd == "--versao" or cmd == "versao":
+        print(__version__)
+        return 0
+    print(VERMELHO("comando desconhecido: %s" % cmd))
+    return menu()
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print()
+        print(CINZA("interrompido."))
+        sys.exit(130)
