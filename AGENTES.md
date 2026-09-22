@@ -1,6 +1,7 @@
 # AGENTES — o tribunal e o método
 
 Seis agentes. Cinco trabalham sobre o material; o sexto trabalha sobre você.
+Cada um mora em um arquivo próprio na pasta `agentes/` — um por agente, leia o código.
 As duas regras da casa:
 
 1. **Material nenhum vira ensino antes de passar pelo tribunal.**
@@ -31,12 +32,12 @@ sequenceDiagram
 
 | Agente | Módulo | Papel |
 |---|---|---|
-| Destripador | `destripador.py` | transforma qualquer coisa em mapa estrutural |
-| Professor | `professor.py` | transforma mapa + veredito em 6 fases didáticas |
-| Cético | `debaters.py` | desafia cada explicação com buraco, exceção e premissa oculta |
-| Convicto | `debaters.py` | sustenta a versão mais forte da explicação, com evidência |
-| Juiz | `debaters.py` | pontua, mede a confiança e redige o veredito |
-| Sócrates | `socrates.py` | só pergunta; recalibra a cada resposta sua |
+| Destripador | `agentes/destripador.py` | transforma qualquer coisa em mapa estrutural |
+| Professor | `agentes/professor.py` | transforma mapa + veredito em 6 fases didáticas |
+| Cético | `agentes/cetico.py` | desafia cada explicação com buraco, exceção e premissa oculta |
+| Convicto | `agentes/convicto.py` | sustenta a versão mais forte da explicação, com evidência |
+| Juiz | `agentes/juiz.py` | pontua, mede a confiança e redige o veredito |
+| Sócrates | `agentes/socrates.py` | só pergunta; recalibra a cada resposta sua |
 
 ## Destripador
 
@@ -122,7 +123,7 @@ reaproveita um scan anterior.
 
 ## Estender (adicionar um agente novo)
 
-1. Crie o módulo em `instalador_core/` com atributos `nome` e `papel` e **um**
+1. Crie o módulo em `agentes/` com atributos `nome` e `papel` e **um**
    método público que receba o mapa (não o disco).
 2. Encaixe-o no ritual em `professor.py` (produção) ou `relatorios.py` (publicação).
 3. Publique a saída dele: uma nota no vault Obsidian e uma seção no `curso.md`.
